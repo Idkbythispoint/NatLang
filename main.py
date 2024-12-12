@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-from compile import parse_functions, generate_full_program
+from compiler import parse_functions, generate_full_program
 from openai import OpenAI
 
 # Initialize OpenAI client
@@ -34,10 +34,6 @@ try:
         print(model.id)
 except Exception as e:
     print(f"Error listing models: {e}")
-
-def generate_full_program(function_signatures):
-    full_program, errors = compile.generate_full_program(function_signatures)
-    return full_program, errors
 
 def select_and_process_file():
     root = tk.Tk()

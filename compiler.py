@@ -3,6 +3,7 @@ import re
 from pydantic import BaseModel
 from openai import OpenAI
 import jedi
+import logging
 
 base_system_message = """
 You are an AI assistant that converts function signatures into working Python code. 
@@ -24,6 +25,9 @@ class CodeAnalysisResult(BaseModel):
 class ErrorHandlingResult(BaseModel):
     fixed_code: str
     success: bool
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 try:
     client = OpenAI()
@@ -47,6 +51,7 @@ except Exception as e:
             print(f"Something went wrong!!!!!!! Either OpenAI is down or the code is messed up: {e}")
 
 def parse_functions(file_path):
+    logging.info(f"Parsing functions from {file_path}")
     with open(file_path, 'r') as file:
         content = file.read()
     
@@ -56,6 +61,7 @@ def parse_functions(file_path):
     return functions
 
 def generate_function_code(function_signature):
+    logging.info(f"Generating code for signature: {function_signature}")
     try:
         completion = client.beta.chat.completions.parse(
             model="gpt-4o-2024-08-06",
@@ -75,6 +81,7 @@ def generate_function_code(function_signature):
         return "print(Error during compilation! Errored function signature: " + function_signature + " Error: " + str(e) + ")"
 
 def refine_code(full_program):
+    logging.info("Refining the full program")
     refinement_message = """
     Please review the following Python code and fix any issues or improve its quality. 
     Ensure it follows best practices and is optimized for performance.
@@ -97,6 +104,7 @@ def refine_code(full_program):
         return full_program
 
 def check_code(full_program):
+    logging.info("Checking the full program")
     check_message = """
     Please review the following Python code for any errors or improvements. 
     Ensure it follows best practices and is optimized for performance.
@@ -121,6 +129,7 @@ def check_code(full_program):
 MAX_RETRIES = 3
 
 def fix_errors(code, errors, retries=0, max_retries=MAX_RETRIES):
+    logging.info(f"Fixing errors: {errors} (Attempt {retries + 1})")
     error_fix_message = """
     You are an AI assistant specialized in fixing Python code errors.
     Given the following errors and code, provide a corrected version of the code.
@@ -154,6 +163,7 @@ def fix_errors(code, errors, retries=0, max_retries=MAX_RETRIES):
             return code, errors
 
 def analyze_code(full_program):
+    logging.info("Analyzing code")
     try:
         script = jedi.Script(code=full_program)
         diagnostics = script.get_annotations()
@@ -165,6 +175,7 @@ def analyze_code(full_program):
         return CodeAnalysisResult(issues=[], recommendations=[])
 
 def generate_full_program(function_signatures):
+    logging.info("Generating full program from function signatures")
     generated_functions = []
     for signature in function_signatures:
         code = generate_function_code(signature)
@@ -174,9 +185,9 @@ def generate_full_program(function_signatures):
     checked_program = check_code(refined_program)
     analyzed_program = analyze_code(checked_program)
     if analyzed_program.issues:
-        print("Code Analysis Issues:")
+        logging.warning("Code Analysis Issues found:")
         for issue in analyzed_program.issues:
-            print(f"- {issue}")
+            logging.warning(f"- {issue}")
         fixed_code, residual_errors = fix_errors(checked_program, analyzed_program.issues)
         if residual_errors:
             return fixed_code, residual_errors
