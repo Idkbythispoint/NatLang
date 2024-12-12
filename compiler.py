@@ -20,6 +20,8 @@ If you have no notes to provide, you can leave the notes part of the response bl
 Here is the python code so far:
 """
 current_system_message = base_system_message
+
+selected_model = "gpt-4o"
 class FunctionCode(BaseModel):
     code: str
     raised_exception: bool
@@ -83,7 +85,7 @@ def generate_function_code(function_signature, notes):
         messages.append({"role": "user", "content": function_signature})
         
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model=selected_model,
             messages=messages,
             response_format=FunctionCode,
             store=True,
@@ -119,7 +121,7 @@ def refine_code(full_program, notes):
             messages.insert(1, {"role": "user", "content": "These are notes the user left:\n" + "\n".join(notes)})
         
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model="gpt-4o",
             messages=messages,
             response_format=FunctionCode,
             store=True,
@@ -149,7 +151,7 @@ def check_code(full_program, notes):
             messages.insert(1, {"role": "user", "content": "These are notes the user left:\n" + "\n".join(notes)})
         
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06",
+            model=selected_model,
             messages=messages,
             response_format=FunctionCode,
             store=True,
@@ -184,7 +186,7 @@ def fix_errors(code, errors, notes, retries=0, max_retries=MAX_RETRIES):
             messages.insert(1, {"role": "user", "content": "These are notes the user left:\n" + "\n".join(notes)})
         
         completion = client.beta.chat.completions.parse(
-            model="gpt-4o-2024-08-06-error-fixer",
+            model=selected_model,
             messages=messages,
             response_format=ErrorHandlingResult,
             store=True,
