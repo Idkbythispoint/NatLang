@@ -1,7 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-from compile import parse_functions, generate_function_code
+from compile import parse_functions, generate_full_program
 from openai import OpenAI
 
 # Initialize OpenAI client
@@ -35,21 +35,27 @@ try:
 except Exception as e:
     print(f"Error listing models: {e}")
 
+def generate_full_program(function_signatures):
+    full_program, errors = compile.generate_full_program(function_signatures)
+    return full_program, errors
+
 def select_and_process_file():
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(title="Select file to parse", filetypes=[("Language Files", "*.lang"), ("All Files", "*.*")])
     if file_path:
         functions = parse_functions(file_path)
-        functions_dir = os.path.join(os.path.dirname(file_path), "functions")
-        os.makedirs(functions_dir, exist_ok=True)
-        
-        for idx, func in enumerate(functions, start=1):
-            code = generate_function_code(func)
-            func_filename = os.path.join(functions_dir, f"function_{idx}.func")
-            with open(func_filename, 'w') as f:
-                f.write(code)
-        print(f"{len(functions)} functions have been processed and saved to the 'functions' folder.")
+        output_file = filedialog.asksaveasfilename(title="Save full program as", defaultextension=".py", filetypes=[("Python Files", "*.py")])
+        if output_file:
+            full_program, errors = generate_full_program(functions)
+            with open(output_file, 'w') as f:
+                f.write(full_program)
+            print(f"Full program generated at {output_file}")
+            if errors:
+                errors_filename = f"{os.path.splitext(output_file)[0]}_errors.txt"
+                with open(errors_filename, "w") as error_file:
+                    error_file.write("\n".join(errors))
+                print(f"Errors were encountered and could not be fixed automatically. See {errors_filename} for details.")
 
 if __name__ == "__main__":
     select_and_process_file()
