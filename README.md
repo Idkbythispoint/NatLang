@@ -177,11 +177,3 @@ We welcome contributions to NatLang! Please feel free to submit issues or pull r
 NatLang is released under the MIT License. See `LICENSE` for more details.
 
 
-
-
-
-
-
-
-
-yes i used chatgpt to generate this
