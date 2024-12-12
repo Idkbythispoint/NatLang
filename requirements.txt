@@ -1,0 +1,5 @@
+openai
+pydantic
+jedi
+logging
+tkinter

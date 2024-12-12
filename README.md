@@ -166,6 +166,10 @@ def divide(a, b):
 
 ---
 
+## Compiling
+
+To compile your project, run the main.py file, select your .lang file, your model to use (it may ask for your OpenAI Key), and where to save it to. Give it some time, and it should create a new Python script!
+
 ## Contributing
 
 We welcome contributions to NatLang! Please feel free to submit issues or pull requests on the GitHub repository to improve the language or its documentation.
