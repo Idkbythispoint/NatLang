@@ -30,8 +30,8 @@ except Exception as e:
 try:
     model_list = client.models.list()
     models = list(model_list)
-    for model in models:
-        print(model.id)
+    #for model in models:
+       # print(model.id)
 except Exception as e:
     print(f"Error listing models: {e}")
     # close the program if OpenAI is down
