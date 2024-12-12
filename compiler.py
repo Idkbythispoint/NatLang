@@ -63,7 +63,7 @@ def parse_functions(file_path):
         content = file.read()
     
     # Extract notes
-    notes_pattern = r'!notes\((.*?)\)'
+    notes_pattern = r'!notes\[(.*?)\]'
     notes = re.findall(notes_pattern, content, re.DOTALL)
     
     # Extract functions
