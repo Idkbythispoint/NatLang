@@ -8,7 +8,27 @@ from openai import OpenAI
 class FunctionCode(BaseModel):
     code: str
 
-client = OpenAI()
+# Try to create the OpenAI client without any options
+try:
+    client = OpenAI()
+except Exception as e:
+    if os.path.exists("openai.key") and os.path.isfile("openai.key") and os.path.getsize("openai.key") > 0:
+        with open("openai.key", "r") as f:
+            api_key = f.read().strip()
+        try:
+            client = OpenAI(api_key=api_key)
+        except Exception as e:
+            print(f"Error: {e}")
+    elif os.path.exists("openai.key") and os.path.isfile("openai.key") and os.path.getsize("openai.key") == 0:
+        print("Error: OpenAI API key is missing. Please set it in the OPENAI_API_KEY environment variable OR put it in the 'openai.key' file.")
+    elif not os.path.exists("openai.key"):
+        api_key = input("Error: OpenAI API key is not set. Please enter your OpenAI API key: ").strip()
+        with open("openai.key", "w") as f:
+            f.write(api_key)
+        try:
+            client = OpenAI(api_key=api_key)
+        except Exception as e:
+            print(f"Something went wrong!!!!!!! Either OpenAI is down or the code is fucked: {e}")
 
 def parse_functions(file_path):
     with open(file_path, 'r') as file:
