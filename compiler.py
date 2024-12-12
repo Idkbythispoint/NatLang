@@ -21,7 +21,7 @@ Here is the python code so far:
 """
 current_system_message = base_system_message
 
-selected_model = "gpt-4o"
+selected_model = "gpt-4o-mini"
 class FunctionCode(BaseModel):
     code: str
     raised_exception: bool
@@ -67,14 +67,17 @@ def parse_functions(file_path):
     # Extract notes
     notes_pattern = r'!notes\[(.*?)\]'
     notes = re.findall(notes_pattern, content, re.DOTALL)
+    print(notes)
     
     # Extract functions
     func_pattern = r'(!func\s+name=\w+\[.*?\])'
     functions = re.findall(func_pattern, content, re.DOTALL)
+
+    print(functions)
     
     return functions, notes
 
-def generate_function_code(function_signature, notes):
+def generate_function_code(function_signature, notes, selected_model):
     logging.info(f"Generating code for signature: {function_signature}")
     try:
         messages = [
@@ -227,13 +230,13 @@ def analyze_code(full_program):
         logging.error(f"Error during code analysis!: {e}")
         return CodeAnalysisResult(issues=[], recommendations=[])
 
-def generate_full_program(function_signatures, notes):
+def generate_full_program(function_signatures, notes, selected_model):
     logging.info("Generating full program from function signatures")
     generated_functions = []
     all_notes = []
     for index, signature in enumerate(function_signatures, start=1):
         logging.info(f"Processing function {index}/{len(function_signatures)}: {signature}")
-        code, func_notes = generate_function_code(signature, notes)
+        code, func_notes = generate_function_code(signature, notes, selected_model)
         if func_notes.strip():
             all_notes.append(func_notes)
         generated_functions.append(code)
@@ -269,7 +272,8 @@ if __name__ == "__main__":
         print("Usage: python compile.py <input_file> <output_file>")
     else:
         functions, notes = parse_functions(sys.argv[1])
-        full_program, errors = generate_full_program(functions, notes)
+        selected_model = sys.argv[3] if len(sys.argv) > 3 else "gpt-4o-mini"  # Default model
+        full_program, errors = generate_full_program(functions, notes, selected_model)
         if errors:
             print(f"Errors encountered: {errors}")
         print(f"Full program generated.")
