@@ -34,16 +34,18 @@ try:
         print(model.id)
 except Exception as e:
     print(f"Error listing models: {e}")
+    # close the program if OpenAI is down
+    exit()
 
 def select_and_process_file():
     root = tk.Tk()
     root.withdraw()
     file_path = filedialog.askopenfilename(title="Select file to parse", filetypes=[("Language Files", "*.lang"), ("All Files", "*.*")])
     if file_path:
-        functions = parse_functions(file_path)
+        functions, notes = parse_functions(file_path)  # Unpack functions and notes
         output_file = filedialog.asksaveasfilename(title="Save full program as", defaultextension=".py", filetypes=[("Python Files", "*.py")])
         if output_file:
-            full_program, errors = generate_full_program(functions)
+            full_program, errors = generate_full_program(functions, notes)  # Pass both functions and notes
             with open(output_file, 'w') as f:
                 f.write(full_program)
             print(f"Full program generated at {output_file}")
