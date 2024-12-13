@@ -1,8 +1,11 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-from compiler import parse_functions, generate_full_program
+from pycompiler import parse_functions, generate_full_program
 from openai import OpenAI
+# Import javacompiler
+from javacompiler import parse_methods, generate_full_program as generate_java_program
+from javabuilder import build_java_to_exe
 
 # Initialize OpenAI client
 try:
@@ -68,23 +71,57 @@ def select_model(client):
 def select_and_process_file():
     root = tk.Tk()
     root.withdraw()
+    
+    # Add language selection
+    print("Select the programming language:")
+    print("1. Python")
+    print("2. Java")
+    language_choice = input("Enter the number of your choice: ").strip()
+
+    if language_choice == '1':
+        language = 'python'
+    elif language_choice == '2':
+        language = 'java'
+    else:
+        print("Invalid choice. Defaulting to Python.")
+        language = 'python'
+
     file_path = filedialog.askopenfilename(title="Select file to parse", filetypes=[("Language Files", "*.lang"), ("All Files", "*.*")])
     if file_path:
         selected_model = select_model(client)
         print(f"Selected model: {selected_model}")
-        functions, notes = parse_functions(file_path)  # Unpack functions and notes
-        print("trying to open file selection 2")
-        output_file = filedialog.asksaveasfilename(title="Save full program as", defaultextension=".py", filetypes=[("Python Files", "*.py")])
-        if output_file:
-            full_program, errors = generate_full_program(functions, notes, selected_model)  # Pass selected_model
-            with open(output_file, 'w') as f:
-                f.write(full_program)
-            print(f"Full program generated at {output_file}")
-            if errors:
-                errors_filename = f"{os.path.splitext(output_file)[0]}_errors.txt"
-                with open(errors_filename, "w") as error_file:
-                    error_file.write("\n".join(errors))
-                print(f"Errors were encountered and could not be fixed automatically. See {errors_filename} for details.")
+        
+        if language == 'python':
+            functions, notes = parse_functions(file_path)
+            output_file = filedialog.asksaveasfilename(title="Save full program as", defaultextension=".py", filetypes=[("Python Files", "*.py")])
+            if output_file:
+                full_program, errors = generate_full_program(functions, notes, selected_model)
+                with open(output_file, 'w') as f:
+                    f.write(full_program)
+                print(f"Full program generated at {output_file}")
+                if errors:
+                    errors_filename = f"{os.path.splitext(output_file)[0]}_errors.txt"
+                    with open(errors_filename, "w") as error_file:
+                        error_file.write("\n".join(errors))
+                    print(f"Errors were encountered and could not be fixed automatically. See {errors_filename} for details.")
+        elif language == 'java':
+            methods, notes = parse_methods(file_path)
+            # Change output file naming
+            output_file = filedialog.asksaveasfilename(title="Save executable as", defaultextension=".exe", filetypes=[("Executable Files", "*.exe")])
+            if output_file:
+                java_file_name = os.path.splitext(output_file)[0] + "_src.java"
+                full_program, errors = generate_java_program(methods, notes, selected_model)
+                with open(java_file_name, 'w') as f:
+                    f.write(full_program)
+                print(f"Java source file generated at {java_file_name}")
+                # Build the Java file into an EXE
+                build_java_to_exe(java_file_name, output_file)
+                print(f"Executable created at {output_file}")
+                if errors:
+                    errors_filename = f"{os.path.splitext(output_file)[0]}_errors.txt"
+                    with open(errors_filename, "w") as error_file:
+                        error_file.write("\n".join(errors))
+                    print(f"Errors were encountered and could not be fixed automatically. See {errors_filename} for details.")
 
 if __name__ == "__main__":
     select_and_process_file()
