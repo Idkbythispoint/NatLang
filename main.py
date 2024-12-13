@@ -1,11 +1,11 @@
 import os
 import tkinter as tk
 from tkinter import filedialog
-from pycompiler import parse_functions, generate_full_program
+from compilers.pycompiler import parse_functions, generate_full_program
 from openai import OpenAI
 # Import javacompiler
-from javacompiler import parse_methods, generate_full_program as generate_java_program
-from javabuilder import build_java_to_exe
+from compilers.javacompiler import parse_methods, generate_full_program as generate_java_program
+from compilers.javabuilder import build_java_to_exe
 
 # Initialize OpenAI client
 try:
