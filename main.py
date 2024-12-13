@@ -6,6 +6,7 @@ from openai import OpenAI
 # Import javacompiler
 from compilers.javacompiler import parse_methods, generate_full_program as generate_java_program
 from compilers.javabuilder import build_java_to_exe
+import platform
 
 # Initialize OpenAI client
 try:
@@ -69,9 +70,6 @@ def select_model(client):
         return select_model(client)
 
 def select_and_process_file():
-    root = tk.Tk()
-    root.withdraw()
-    
     # Add language selection
     print("Select the programming language:")
     print("1. Python")
@@ -86,14 +84,67 @@ def select_and_process_file():
         print("Invalid choice. Defaulting to Python.")
         language = 'python'
 
-    file_path = filedialog.askopenfilename(title="Select file to parse", filetypes=[("Language Files", "*.lang"), ("All Files", "*.*")])
+    # Add OS and display check for file selection
+    if platform.system() != "Windows":
+        while True:
+            file_path = input("Enter the path to the file to parse: ").strip()
+            if os.path.isfile(file_path):
+                break
+            else:
+                print("Invalid file path. Please enter a valid file path.")
+    else:
+        try:
+            root = tk.Tk()
+            root.withdraw()
+            file_path = filedialog.askopenfilename(title="Select file to parse", filetypes=[("Language Files", "*.lang"), ("All Files", "*.*")])
+        except tk.TclError:
+            print("No display available. Please enter the path to the file to parse.")
+            while True:
+                file_path = input("Enter the path to the file to parse: ").strip()
+                if os.path.isfile(file_path):
+                    break
+                else:
+                    print("Invalid file path. Please enter a valid file path.")
+    
     if file_path:
         selected_model = select_model(client)
         print(f"Selected model: {selected_model}")
         
         if language == 'python':
             functions, notes = parse_functions(file_path)
-            output_file = filedialog.asksaveasfilename(title="Save full program as", defaultextension=".py", filetypes=[("Python Files", "*.py")])
+            # Add OS and display check for save dialog
+            if platform.system() != "Windows":
+                while True:
+                    output_input = input("Enter the path to save the full program (.py) or a directory: ").strip()
+                    if os.path.isdir(output_input):
+                        base_name = os.path.splitext(os.path.basename(file_path))[0]
+                        output_file = os.path.join(output_input, f"{base_name}.py")
+                        break
+                    else:
+                        output_dir = os.path.dirname(output_input) or '.'
+                        if os.path.isdir(output_dir):
+                            output_file = output_input
+                            break
+                        else:
+                            print("Invalid directory. Please enter a valid save location.")
+            else:
+                try:
+                    output_file = filedialog.asksaveasfilename(title="Save full program as", defaultextension=".py", filetypes=[("Python Files", "*.py")])
+                except tk.TclError:
+                    print("No display available. Please enter the path to save the full program.")
+                    while True:
+                        output_input = input("Enter the path to save the full program (.py) or a directory: ").strip()
+                        if os.path.isdir(output_input):
+                            base_name = os.path.splitext(os.path.basename(file_path))[0]
+                            output_file = os.path.join(output_input, f"{base_name}.py")
+                            break
+                        else:
+                            output_dir = os.path.dirname(output_input) or '.'
+                            if os.path.isdir(output_dir):
+                                output_file = output_input
+                                break
+                            else:
+                                print("Invalid directory. Please enter a valid save location.")
             if output_file:
                 full_program, errors = generate_full_program(functions, notes, selected_model)
                 with open(output_file, 'w') as f:
@@ -107,7 +158,39 @@ def select_and_process_file():
         elif language == 'java':
             methods, notes = parse_methods(file_path)
             # Change output file naming
-            output_file = filedialog.asksaveasfilename(title="Save executable as", defaultextension=".exe", filetypes=[("Executable Files", "*.exe")])
+            # Add OS and display check for save dialog
+            if platform.system() != "Windows":
+                while True:
+                    output_input = input("Enter the path to save the executable (.exe) or a directory: ").strip()
+                    if os.path.isdir(output_input):
+                        base_name = os.path.splitext(os.path.basename(file_path))[0]
+                        output_file = os.path.join(output_input, f"{base_name}.exe")
+                        break
+                    else:
+                        output_dir = os.path.dirname(output_input) or '.'
+                        if os.path.isdir(output_dir):
+                            output_file = output_input
+                            break
+                        else:
+                            print("Invalid directory. Please enter a valid save location.")
+            else:
+                try:
+                    output_file = filedialog.asksaveasfilename(title="Save executable as", defaultextension=".exe", filetypes=[("Executable Files", "*.exe")])
+                except tk.TclError:
+                    print("No display available. Please enter the path to save the executable.")
+                    while True:
+                        output_input = input("Enter the path to save the executable (.exe) or a directory: ").strip()
+                        if os.path.isdir(output_input):
+                            base_name = os.path.splitext(os.path.basename(file_path))[0]
+                            output_file = os.path.join(output_input, f"{base_name}.exe")
+                            break
+                        else:
+                            output_dir = os.path.dirname(output_input) or '.'
+                            if os.path.isdir(output_dir):
+                                output_file = output_input
+                                break
+                            else:
+                                print("Invalid directory. Please enter a valid save location.")
             if output_file:
                 java_file_name = os.path.splitext(output_file)[0] + "_src.java"
                 full_program, errors = generate_java_program(methods, notes, selected_model)
